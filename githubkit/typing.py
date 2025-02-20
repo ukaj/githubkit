@@ -89,3 +89,5 @@ class RetryOption(NamedTuple):
 
 
 RetryDecisionFunc: TypeAlias = Callable[[GitHubException, int], RetryOption]
+
+CertTypes: TypeAlias = Union[str, Tuple[str, str], Tuple[str, str, str]]

@@ -25,6 +25,7 @@ from .exception import (
 from .response import Response
 from .throttling import BaseThrottler
 from .typing import (
+    CertTypes,
     ContentTypes,
     CookieTypes,
     HeaderTypes,
@@ -124,6 +125,7 @@ class GitHubCore(Generic[A]):
         throttler: Optional[BaseThrottler] = None,
         auto_retry: Union[bool, RetryDecisionFunc] = True,
         rest_api_validate_body: bool = True,
+        cert: Optional[CertTypes] = None
     ): ...
 
     def __init__(
@@ -142,6 +144,7 @@ class GitHubCore(Generic[A]):
         throttler: Optional[BaseThrottler] = None,
         auto_retry: Union[bool, RetryDecisionFunc] = True,
         rest_api_validate_body: bool = True,
+        cert: Optional[CertTypes] = None
     ):
         auth = auth or UnauthAuthStrategy()  # type: ignore
         self.auth: A = (  # type: ignore
@@ -161,6 +164,8 @@ class GitHubCore(Generic[A]):
             auto_retry=auto_retry,
             rest_api_validate_body=rest_api_validate_body,
         )
+
+        self.cert: Optional[CertTypes]= cert
 
         self.__sync_client: ContextVar[Optional[httpx.Client]] = ContextVar(
             "sync_client", default=None
@@ -224,7 +229,11 @@ class GitHubCore(Generic[A]):
         else:
             transport = httpx.HTTPTransport()
 
-        return httpx.Client(**self._get_client_defaults(), transport=transport)
+        return httpx.Client(
+            **self._get_client_defaults(),
+            transport=transport,
+            cert=self.cert,
+        )
 
     # get or create sync client
     @contextmanager
@@ -248,7 +257,11 @@ class GitHubCore(Generic[A]):
         else:
             transport = httpx.AsyncHTTPTransport()
 
-        return httpx.AsyncClient(**self._get_client_defaults(), transport=transport)
+        return httpx.AsyncClient(
+            **self._get_client_defaults(),
+            transport=transport,
+            cert=self.cert,
+        )
 
     # get or create async client
     @asynccontextmanager
